@@ -4,10 +4,10 @@ use sea_query::{Expr, Query, SqliteQueryBuilder};
 use sea_query_rusqlite::RusqliteBinder;
 use serde::{Deserialize, Serialize};
 
-use collie_core::error::{Error, Result};
 use collie_core::model::database::DbState;
 
 use super::database::Keys;
+use crate::error::{Error, Result};
 
 #[derive(Serialize)]
 pub struct Key {

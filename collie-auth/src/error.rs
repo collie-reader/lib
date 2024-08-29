@@ -3,16 +3,22 @@ pub enum Error {
     #[error("unauthorized")]
     Unauthorized,
 
-    #[error("failed to ")]
-    JsonWebToken {
+    #[error(transparent)]
+    RusqliteError {
         #[from]
-        source: jsonwebtoken::errors::Error,
+        source: rusqlite::Error,
     },
 
     #[error(transparent)]
-    CoreError {
+    SeaQueryError {
         #[from]
-        source: collie_core::error::Error,
+        source: sea_query::error::Error,
+    },
+
+    #[error(transparent)]
+    JsonWebToken {
+        #[from]
+        source: jsonwebtoken::errors::Error,
     },
 }
 
