@@ -1,0 +1,13 @@
+[package]
+name = "collie"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+collie-core = { version = "0.1.0", path = "../collie-core" }
+collie-auth = { version = "0.1.0", path = "../collie-auth", optional = true }
+
+[features]
+default = ["core"]
+core = []
+auth = ["collie-auth"]
