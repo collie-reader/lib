@@ -1,6 +1,6 @@
 use std::{path::Path, sync::Mutex};
 
-use rusqlite::Connection;
+use rusqlite::Connection as RusqliteConnection;
 use sea_query::{
     ColumnDef, Expr, ForeignKey, ForeignKeyAction, Iden, Index, SqliteQueryBuilder, Table,
     TableCreateStatement,
@@ -8,8 +8,8 @@ use sea_query::{
 
 use crate::error::Result;
 
-pub struct DbState {
-    pub db: Mutex<Connection>,
+pub struct Connection {
+    pub db: Mutex<RusqliteConnection>,
 }
 
 #[derive(Iden)]
@@ -42,6 +42,12 @@ pub struct Migration {
     tables: Vec<TableCreateStatement>,
 }
 
+impl Default for Migration {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Migration {
     pub fn new() -> Self {
         Self { tables: Vec::new() }
@@ -52,7 +58,7 @@ impl Migration {
         self
     }
 
-    pub fn migrate(&self, db: &Connection) -> Result<()> {
+    pub fn migrate(&self, db: &RusqliteConnection) -> Result<()> {
         let sql = self
             .tables
             .iter()
@@ -64,8 +70,8 @@ impl Migration {
     }
 }
 
-pub fn open_connection(path: &Path) -> Result<Connection> {
-    Ok(Connection::open(path.join("collie.db"))?)
+pub fn open_connection(path: &Path) -> Result<RusqliteConnection> {
+    Ok(RusqliteConnection::open(path.join("collie.db"))?)
 }
 
 pub fn feed_table() -> TableCreateStatement {

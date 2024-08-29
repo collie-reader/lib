@@ -4,7 +4,7 @@ use sea_query::{Expr, Query, SqliteQueryBuilder};
 use sea_query_rusqlite::RusqliteBinder;
 use serde::{Deserialize, Serialize};
 
-use collie_core::model::database::DbState;
+use collie_core::model::database::Connection;
 
 use super::database::Keys;
 use crate::error::{Error, Result};
@@ -38,7 +38,7 @@ pub struct KeyToCreate {
     pub expired_at: Option<DateTime<FixedOffset>>,
 }
 
-pub fn create(db_state: &DbState, arg: &KeyToCreate) -> Result<usize> {
+pub fn create(db_state: &Connection, arg: &KeyToCreate) -> Result<usize> {
     let (sql, values) = Query::insert()
         .into_table(Keys::Table)
         .columns([
@@ -59,7 +59,7 @@ pub fn create(db_state: &DbState, arg: &KeyToCreate) -> Result<usize> {
     Ok(db.execute(sql.as_str(), &*values.as_params())?)
 }
 
-pub fn find_secret_by_access(db_state: &DbState, access_key: &str) -> Result<String> {
+pub fn find_secret_by_access(db_state: &Connection, access_key: &str) -> Result<String> {
     let (sql, values) = Query::select()
         .columns([Keys::Secret])
         .from(Keys::Table)

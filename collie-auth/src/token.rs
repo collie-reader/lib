@@ -2,7 +2,7 @@ use chrono::Utc;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 
-use collie_core::model::database::DbState;
+use collie_core::model::database::Connection;
 
 use crate::error::{Error, Result};
 use crate::model;
@@ -13,7 +13,7 @@ pub struct Claims {
     pub exp: i64,
 }
 
-pub fn verify_token(db_state: &DbState, token: &str) -> Result<bool> {
+pub fn verify_token(db_state: &Connection, token: &str) -> Result<bool> {
     let validation = Validation::default();
     let secret_key = model::key::find_secret_by_access(db_state, token)?;
     match decode::<Claims>(
@@ -32,7 +32,7 @@ pub fn verify_token(db_state: &DbState, token: &str) -> Result<bool> {
     }
 }
 
-pub fn create_token(db_state: &DbState, access_key: &str) -> Result<String> {
+pub fn create_token(db_state: &Connection, access_key: &str) -> Result<String> {
     let secret_key = model::key::find_secret_by_access(db_state, access_key)?;
 
     let now = Utc::now().timestamp();

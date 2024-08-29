@@ -8,7 +8,7 @@ use sea_query_rusqlite::RusqliteBinder;
 use serde::{Deserialize, Serialize};
 use sha1_smol::Sha1;
 
-use super::database::{DbState, Feeds, Items};
+use super::database::{Connection, Feeds, Items};
 use crate::error::{Error, Result};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -132,7 +132,7 @@ pub struct ItemReadOption {
     pub offset: Option<u64>,
 }
 
-pub fn create(db_state: &DbState, arg: &ItemToCreate) -> Result<usize> {
+pub fn create(db_state: &Connection, arg: &ItemToCreate) -> Result<usize> {
     let (sql, values) = Query::insert()
         .into_table(Items::Table)
         .columns([
@@ -161,7 +161,7 @@ pub fn create(db_state: &DbState, arg: &ItemToCreate) -> Result<usize> {
     Ok(db.execute(sql.as_str(), &*values.as_params())?)
 }
 
-pub fn read_all(db_state: &DbState, opt: &ItemReadOption) -> Result<Vec<Item>> {
+pub fn read_all(db_state: &Connection, opt: &ItemReadOption) -> Result<Vec<Item>> {
     let mut query = Query::select()
         .columns([
             (Items::Table, Items::Id),
@@ -247,7 +247,7 @@ pub fn read_all(db_state: &DbState, opt: &ItemReadOption) -> Result<Vec<Item>> {
     Ok(rows.map(std::result::Result::unwrap).collect::<Vec<Item>>())
 }
 
-pub fn count_all(db_state: &DbState, opt: &ItemReadOption) -> Result<i64> {
+pub fn count_all(db_state: &Connection, opt: &ItemReadOption) -> Result<i64> {
     let mut query = Query::select()
         .from(Items::Table)
         .expr(Func::count(Expr::col(Items::Id)))
@@ -277,7 +277,7 @@ pub fn count_all(db_state: &DbState, opt: &ItemReadOption) -> Result<i64> {
     })
 }
 
-pub fn update(db_state: &DbState, arg: &ItemToUpdate) -> Result<usize> {
+pub fn update(db_state: &Connection, arg: &ItemToUpdate) -> Result<usize> {
     let mut vals = vec![];
 
     if let Some(status) = &arg.status {
@@ -298,7 +298,7 @@ pub fn update(db_state: &DbState, arg: &ItemToUpdate) -> Result<usize> {
     Ok(db.execute(sql.as_str(), &*values.as_params())?)
 }
 
-pub fn update_all(db_state: &DbState, arg: &ItemToUpdateAll) -> Result<usize> {
+pub fn update_all(db_state: &Connection, arg: &ItemToUpdateAll) -> Result<usize> {
     let mut vals = vec![];
 
     if let Some(status) = &arg.status {

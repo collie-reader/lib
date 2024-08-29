@@ -1,16 +1,16 @@
-use collie_core::model::database::DbState;
+use collie_core::model::database::Connection;
 use rand::{thread_rng, Rng};
 
 use crate::error::Result;
 use crate::model;
 use crate::model::key::KeyToCreate;
 
-pub fn create(db_state: &DbState, description: &Option<String>) -> Result<String> {
+pub fn create(db_state: Connection, description: &Option<String>) -> Result<String> {
     let access_key = generate_key();
     let secret_key = generate_key();
 
     let _ = model::key::create(
-        db_state,
+        &db_state,
         &KeyToCreate {
             access: access_key.clone(),
             secret: secret_key,

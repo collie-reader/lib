@@ -10,7 +10,7 @@ use sea_query::{Expr, Query, SqliteQueryBuilder};
 use sea_query_rusqlite::RusqliteBinder;
 use serde::{Deserialize, Serialize};
 
-use super::database::DbState;
+use super::database::Connection;
 use crate::error::{Error, Result};
 use crate::model::database::Feeds;
 
@@ -84,7 +84,7 @@ pub struct FeedToUpdate {
     pub fetch_old_items: Option<bool>,
 }
 
-pub fn create(db_state: &DbState, arg: &FeedToCreate) -> Result<usize> {
+pub fn create(db_state: &Connection, arg: &FeedToCreate) -> Result<usize> {
     let (sql, values) = Query::insert()
         .into_table(Feeds::Table)
         .columns([
@@ -105,7 +105,7 @@ pub fn create(db_state: &DbState, arg: &FeedToCreate) -> Result<usize> {
     Ok(db.execute(sql.as_str(), &*values.as_params())?)
 }
 
-pub fn read_all(db_state: &DbState) -> Result<Vec<Feed>> {
+pub fn read_all(db_state: &Connection) -> Result<Vec<Feed>> {
     let (sql, values) = Query::select()
         .columns([
             Feeds::Id,
@@ -125,7 +125,7 @@ pub fn read_all(db_state: &DbState) -> Result<Vec<Feed>> {
     Ok(rows.map(std::result::Result::unwrap).collect::<Vec<Feed>>())
 }
 
-pub fn read(db_state: &DbState, id: i32) -> Result<Option<Feed>> {
+pub fn read(db_state: &Connection, id: i32) -> Result<Option<Feed>> {
     let (sql, values) = Query::select()
         .columns([
             Feeds::Id,
@@ -147,7 +147,7 @@ pub fn read(db_state: &DbState, id: i32) -> Result<Option<Feed>> {
     Ok(rows.next()?.map(Feed::from))
 }
 
-pub fn update(db_state: &DbState, arg: &FeedToUpdate) -> Result<usize> {
+pub fn update(db_state: &Connection, arg: &FeedToUpdate) -> Result<usize> {
     let mut vals = vec![];
 
     if let Some(title) = &arg.title {
@@ -180,7 +180,7 @@ pub fn update(db_state: &DbState, arg: &FeedToUpdate) -> Result<usize> {
     Ok(db.execute(sql.as_str(), &*values.as_params())?)
 }
 
-pub fn delete(db_state: &DbState, id: i32) -> Result<usize> {
+pub fn delete(db_state: &Connection, id: i32) -> Result<usize> {
     let (sql, values) = Query::delete()
         .from_table(Feeds::Table)
         .and_where(Expr::col(Feeds::Id).eq(id))
