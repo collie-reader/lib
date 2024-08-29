@@ -38,7 +38,7 @@ pub struct KeyToCreate {
     pub expired_at: Option<DateTime<FixedOffset>>,
 }
 
-pub fn create(db_state: &Connection, arg: &KeyToCreate) -> Result<usize> {
+pub fn create(conn: &Connection, arg: &KeyToCreate) -> Result<usize> {
     let (sql, values) = Query::insert()
         .into_table(Keys::Table)
         .columns([
@@ -55,11 +55,11 @@ pub fn create(db_state: &Connection, arg: &KeyToCreate) -> Result<usize> {
         ])
         .build_rusqlite(SqliteQueryBuilder);
 
-    let db = db_state.db.lock().unwrap();
+    let db = conn.db.lock().unwrap();
     Ok(db.execute(sql.as_str(), &*values.as_params())?)
 }
 
-pub fn find_secret_by_access(db_state: &Connection, access_key: &str) -> Result<String> {
+pub fn find_secret_by_access(conn: &Connection, access_key: &str) -> Result<String> {
     let (sql, values) = Query::select()
         .columns([Keys::Secret])
         .from(Keys::Table)
@@ -67,7 +67,7 @@ pub fn find_secret_by_access(db_state: &Connection, access_key: &str) -> Result<
         .limit(1)
         .build_rusqlite(SqliteQueryBuilder);
 
-    let db = db_state.db.lock().unwrap();
+    let db = conn.db.lock().unwrap();
     let mut stmt = db.prepare(sql.as_str())?;
     let mut rows = stmt.query(&*values.as_params())?;
 

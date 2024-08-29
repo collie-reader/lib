@@ -5,12 +5,12 @@ use crate::error::Result;
 use crate::model;
 use crate::model::key::KeyToCreate;
 
-pub fn create(db_state: Connection, description: &Option<String>) -> Result<String> {
+pub fn create(conn: Connection, description: &Option<String>) -> Result<String> {
     let access_key = generate_key();
     let secret_key = generate_key();
 
     let _ = model::key::create(
-        &db_state,
+        &conn,
         &KeyToCreate {
             access: access_key.clone(),
             secret: secret_key,

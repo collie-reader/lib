@@ -13,9 +13,9 @@ pub struct Claims {
     pub exp: i64,
 }
 
-pub fn verify_token(db_state: &Connection, token: &str) -> Result<bool> {
+pub fn verify_token(conn: &Connection, token: &str) -> Result<bool> {
     let validation = Validation::default();
-    let secret_key = model::key::find_secret_by_access(db_state, token)?;
+    let secret_key = model::key::find_secret_by_access(conn, token)?;
     match decode::<Claims>(
         token,
         &DecodingKey::from_secret(secret_key.as_bytes()),
@@ -32,8 +32,8 @@ pub fn verify_token(db_state: &Connection, token: &str) -> Result<bool> {
     }
 }
 
-pub fn create_token(db_state: &Connection, access_key: &str) -> Result<String> {
-    let secret_key = model::key::find_secret_by_access(db_state, access_key)?;
+pub fn create_token(conn: &Connection, access_key: &str) -> Result<String> {
+    let secret_key = model::key::find_secret_by_access(conn, access_key)?;
 
     let now = Utc::now().timestamp();
     let claims = Claims {
