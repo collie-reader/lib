@@ -5,7 +5,7 @@ use crate::error::Result;
 use crate::model;
 use crate::model::key::KeyToCreate;
 
-pub fn create(conn: Connection, description: &Option<String>) -> Result<String> {
+pub fn create(conn: Connection, description: &Option<String>) -> Result<(String, String)> {
     let access_key = generate_key();
     let secret_key = generate_key();
 
@@ -13,24 +13,24 @@ pub fn create(conn: Connection, description: &Option<String>) -> Result<String> 
         &conn,
         &KeyToCreate {
             access: access_key.clone(),
-            secret: secret_key,
+            secret: secret_key.clone(),
             description: description.clone(),
             expired_at: None,
         },
     );
 
-    Ok(access_key)
+    Ok((access_key, secret_key))
 }
 
-fn generate_key() -> String {
-    const TOKEN_CHARS: &[u8] =
+pub fn generate_key() -> String {
+    const CHARS: &[u8] =
         b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*_-";
 
     let mut rng = thread_rng();
     (0..64)
         .map(|_| {
-            let idx = rng.gen_range(0..TOKEN_CHARS.len());
-            TOKEN_CHARS[idx] as char
+            let idx = rng.gen_range(0..CHARS.len());
+            CHARS[idx] as char
         })
         .collect()
 }

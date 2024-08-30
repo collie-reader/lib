@@ -1,5 +1,5 @@
 use chrono::Utc;
-use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 
 use collie_core::model::database::Connection;
@@ -13,12 +13,17 @@ pub struct Claims {
     pub exp: i64,
 }
 
-pub fn verify_token(conn: &Connection, token: &str) -> Result<bool> {
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Login {
+    pub access: String,
+    pub secret: String,
+}
+
+pub fn verify(access: &str, server_secret: &str) -> Result<bool> {
     let validation = Validation::default();
-    let secret_key = model::key::find_secret_by_access(conn, token)?;
-    match decode::<Claims>(
-        token,
-        &DecodingKey::from_secret(secret_key.as_bytes()),
+    match jsonwebtoken::decode::<Claims>(
+        access,
+        &DecodingKey::from_secret(server_secret.as_bytes()),
         &validation,
     ) {
         Ok(token) => {
@@ -32,20 +37,26 @@ pub fn verify_token(conn: &Connection, token: &str) -> Result<bool> {
     }
 }
 
-pub fn create_token(conn: &Connection, access_key: &str) -> Result<String> {
-    let secret_key = model::key::find_secret_by_access(conn, access_key)?;
+pub fn issue(conn: &Connection, access: &str, secret: &str, server_secret: &str) -> Result<String> {
+    let exists = model::key::exists(conn, access, secret)?;
+    if exists {
+        Ok(encode(server_secret)?)
+    } else {
+        Err(Error::Unauthorized)
+    }
+}
 
+fn encode(secret: &str) -> Result<String> {
     let now = Utc::now().timestamp();
     let claims = Claims {
         iat: now,
         exp: now + 3600,
     };
 
-    let token = encode(
+    jsonwebtoken::encode(
         &Header::default(),
         &claims,
-        &EncodingKey::from_secret(secret_key.as_bytes()),
-    )?;
-
-    Ok(token)
+        &EncodingKey::from_secret(secret.as_bytes()),
+    )
+    .map_err(|_| Error::Unauthorized)
 }

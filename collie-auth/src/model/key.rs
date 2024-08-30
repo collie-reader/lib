@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use collie_core::model::database::Connection;
 
 use super::database::Keys;
-use crate::error::{Error, Result};
+use crate::error::Result;
 
 #[derive(Serialize)]
 pub struct Key {
@@ -59,11 +59,17 @@ pub fn create(conn: &Connection, arg: &KeyToCreate) -> Result<usize> {
     Ok(db.execute(sql.as_str(), &*values.as_params())?)
 }
 
-pub fn find_secret_by_access(conn: &Connection, access_key: &str) -> Result<String> {
+pub fn exists(conn: &Connection, access: &str, secret: &str) -> Result<bool> {
     let (sql, values) = Query::select()
-        .columns([Keys::Secret])
+        .columns([Keys::Id])
         .from(Keys::Table)
-        .and_where(Expr::col(Keys::Access).eq(access_key))
+        .and_where(Expr::col(Keys::Access).eq(access))
+        .and_where(Expr::col(Keys::Secret).eq(secret))
+        .and_where(
+            Expr::col(Keys::ExpiredAt)
+                .gt(chrono::Utc::now())
+                .or(Expr::col(Keys::ExpiredAt).is_null()),
+        )
         .limit(1)
         .build_rusqlite(SqliteQueryBuilder);
 
@@ -71,8 +77,5 @@ pub fn find_secret_by_access(conn: &Connection, access_key: &str) -> Result<Stri
     let mut stmt = db.prepare(sql.as_str())?;
     let mut rows = stmt.query(&*values.as_params())?;
 
-    match rows.next()?.map(Key::from) {
-        Some(key) => Ok(key.secret),
-        None => Err(Error::Unauthorized),
-    }
+    Ok(rows.next()?.is_some())
 }
