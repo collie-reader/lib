@@ -132,7 +132,7 @@ pub struct ItemReadOption {
     pub offset: Option<u64>,
 }
 
-pub fn create(db_state: &Connection, arg: &ItemToCreate) -> Result<usize> {
+pub fn create(conn: &Connection, arg: &ItemToCreate) -> Result<usize> {
     let (sql, values) = Query::insert()
         .into_table(Items::Table)
         .columns([
@@ -157,11 +157,11 @@ pub fn create(db_state: &Connection, arg: &ItemToCreate) -> Result<usize> {
         ])
         .build_rusqlite(SqliteQueryBuilder);
 
-    let db = db_state.db.lock().unwrap();
+    let db = conn.db.lock().unwrap();
     Ok(db.execute(sql.as_str(), &*values.as_params())?)
 }
 
-pub fn read_all(db_state: &Connection, opt: &ItemReadOption) -> Result<Vec<Item>> {
+pub fn read_all(conn: &Connection, opt: &ItemReadOption) -> Result<Vec<Item>> {
     let mut query = Query::select()
         .columns([
             (Items::Table, Items::Id),
@@ -239,7 +239,7 @@ pub fn read_all(db_state: &Connection, opt: &ItemReadOption) -> Result<Vec<Item>
         });
     }
 
-    let db = db_state.db.lock().unwrap();
+    let db = conn.db.lock().unwrap();
     let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
     let mut stmt = db.prepare(sql.as_str())?;
     let rows = stmt.query_map(&*values.as_params(), |x| Ok(Item::from(x)))?;
@@ -247,7 +247,7 @@ pub fn read_all(db_state: &Connection, opt: &ItemReadOption) -> Result<Vec<Item>
     Ok(rows.map(std::result::Result::unwrap).collect::<Vec<Item>>())
 }
 
-pub fn count_all(db_state: &Connection, opt: &ItemReadOption) -> Result<i64> {
+pub fn count_all(conn: &Connection, opt: &ItemReadOption) -> Result<i64> {
     let mut query = Query::select()
         .from(Items::Table)
         .expr(Func::count(Expr::col(Items::Id)))
@@ -265,7 +265,7 @@ pub fn count_all(db_state: &Connection, opt: &ItemReadOption) -> Result<i64> {
         query.and_where(Expr::col(Items::IsSaved).eq(*is_saved));
     }
 
-    let db = db_state.db.lock().unwrap();
+    let db = conn.db.lock().unwrap();
     let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
     let mut stmt = db.prepare(sql.as_str())?;
     let mut rows = stmt.query(&*values.as_params())?;
@@ -277,7 +277,7 @@ pub fn count_all(db_state: &Connection, opt: &ItemReadOption) -> Result<i64> {
     })
 }
 
-pub fn update(db_state: &Connection, arg: &ItemToUpdate) -> Result<usize> {
+pub fn update(conn: &Connection, arg: &ItemToUpdate) -> Result<usize> {
     let mut vals = vec![];
 
     if let Some(status) = &arg.status {
@@ -294,11 +294,11 @@ pub fn update(db_state: &Connection, arg: &ItemToUpdate) -> Result<usize> {
         .and_where(Expr::col(Items::Id).eq(arg.id))
         .build_rusqlite(SqliteQueryBuilder);
 
-    let db = db_state.db.lock().unwrap();
+    let db = conn.db.lock().unwrap();
     Ok(db.execute(sql.as_str(), &*values.as_params())?)
 }
 
-pub fn update_all(db_state: &Connection, arg: &ItemToUpdateAll) -> Result<usize> {
+pub fn update_all(conn: &Connection, arg: &ItemToUpdateAll) -> Result<usize> {
     let mut vals = vec![];
 
     if let Some(status) = &arg.status {
@@ -329,7 +329,7 @@ pub fn update_all(db_state: &Connection, arg: &ItemToUpdateAll) -> Result<usize>
         }
     }
 
-    let db = db_state.db.lock().unwrap();
+    let db = conn.db.lock().unwrap();
     let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
     Ok(db.execute(sql.as_str(), &*values.as_params())?)
 }

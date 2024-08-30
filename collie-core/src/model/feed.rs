@@ -84,7 +84,7 @@ pub struct FeedToUpdate {
     pub fetch_old_items: Option<bool>,
 }
 
-pub fn create(db_state: &Connection, arg: &FeedToCreate) -> Result<usize> {
+pub fn create(conn: &Connection, arg: &FeedToCreate) -> Result<usize> {
     let (sql, values) = Query::insert()
         .into_table(Feeds::Table)
         .columns([
@@ -101,11 +101,11 @@ pub fn create(db_state: &Connection, arg: &FeedToCreate) -> Result<usize> {
         ])
         .build_rusqlite(SqliteQueryBuilder);
 
-    let db = db_state.db.lock().unwrap();
+    let db = conn.db.lock().unwrap();
     Ok(db.execute(sql.as_str(), &*values.as_params())?)
 }
 
-pub fn read_all(db_state: &Connection) -> Result<Vec<Feed>> {
+pub fn read_all(conn: &Connection) -> Result<Vec<Feed>> {
     let (sql, values) = Query::select()
         .columns([
             Feeds::Id,
@@ -118,14 +118,14 @@ pub fn read_all(db_state: &Connection) -> Result<Vec<Feed>> {
         .from(Feeds::Table)
         .build_rusqlite(SqliteQueryBuilder);
 
-    let db = db_state.db.lock().unwrap();
+    let db = conn.db.lock().unwrap();
     let mut stmt = db.prepare(sql.as_str())?;
     let rows = stmt.query_map(&*values.as_params(), |x| Ok(Feed::from(x)))?;
 
     Ok(rows.map(std::result::Result::unwrap).collect::<Vec<Feed>>())
 }
 
-pub fn read(db_state: &Connection, id: i32) -> Result<Option<Feed>> {
+pub fn read(conn: &Connection, id: i32) -> Result<Option<Feed>> {
     let (sql, values) = Query::select()
         .columns([
             Feeds::Id,
@@ -140,14 +140,14 @@ pub fn read(db_state: &Connection, id: i32) -> Result<Option<Feed>> {
         .limit(1)
         .build_rusqlite(SqliteQueryBuilder);
 
-    let db = db_state.db.lock().unwrap();
+    let db = conn.db.lock().unwrap();
     let mut stmt = db.prepare(sql.as_str())?;
     let mut rows = stmt.query(&*values.as_params())?;
 
     Ok(rows.next()?.map(Feed::from))
 }
 
-pub fn update(db_state: &Connection, arg: &FeedToUpdate) -> Result<usize> {
+pub fn update(conn: &Connection, arg: &FeedToUpdate) -> Result<usize> {
     let mut vals = vec![];
 
     if let Some(title) = &arg.title {
@@ -176,16 +176,16 @@ pub fn update(db_state: &Connection, arg: &FeedToUpdate) -> Result<usize> {
         .and_where(Expr::col(Feeds::Id).eq(arg.id))
         .build_rusqlite(SqliteQueryBuilder);
 
-    let db = db_state.db.lock().unwrap();
+    let db = conn.db.lock().unwrap();
     Ok(db.execute(sql.as_str(), &*values.as_params())?)
 }
 
-pub fn delete(db_state: &Connection, id: i32) -> Result<usize> {
+pub fn delete(conn: &Connection, id: i32) -> Result<usize> {
     let (sql, values) = Query::delete()
         .from_table(Feeds::Table)
         .and_where(Expr::col(Feeds::Id).eq(id))
         .build_rusqlite(SqliteQueryBuilder);
 
-    let db = db_state.db.lock().unwrap();
+    let db = conn.db.lock().unwrap();
     Ok(db.execute(sql.as_str(), &*values.as_params())?)
 }

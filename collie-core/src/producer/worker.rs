@@ -17,8 +17,8 @@ use crate::model::item::ItemToCreate;
 use super::syndication::fetch_feed_items;
 use super::syndication::RawItem;
 
-pub fn create_new_items(db_state: &Connection, proxy: Option<&str>) -> Result<Vec<ItemToCreate>> {
-    let pairs = get_links_to_check(db_state);
+pub fn create_new_items(conn: &Connection, proxy: Option<&str>) -> Result<Vec<ItemToCreate>> {
+    let pairs = get_links_to_check(conn);
 
     let mut inserted = vec![];
 
@@ -28,7 +28,7 @@ pub fn create_new_items(db_state: &Connection, proxy: Option<&str>) -> Result<Ve
         .collect();
 
     let most_recent_items = if !feed_ids_to_check.is_empty() {
-        get_most_recent_items(db_state, &feed_ids_to_check).unwrap_or_default()
+        get_most_recent_items(conn, &feed_ids_to_check).unwrap_or_default()
     } else {
         HashMap::new()
     };
@@ -55,21 +55,21 @@ pub fn create_new_items(db_state: &Connection, proxy: Option<&str>) -> Result<Ve
         };
 
         filtered_items.sort_by_key(|x| x.published_at);
-        inserted.extend(insert_new_items(db_state, feed, &filtered_items));
+        inserted.extend(insert_new_items(conn, feed, &filtered_items));
     }
 
     Ok(inserted)
 }
 
-fn get_links_to_check(db_state: &Connection) -> Vec<(i32, String, bool)> {
-    if let Ok(feeds) = feed::read_all(db_state) {
+fn get_links_to_check(conn: &Connection) -> Vec<(i32, String, bool)> {
+    if let Ok(feeds) = feed::read_all(conn) {
         let current = Utc::now().fixed_offset();
         let filtered = feeds.iter().filter(|x| x.status == FeedStatus::Subscribed);
 
         filtered
             .map(|x| {
                 let _ = feed::update(
-                    db_state,
+                    conn,
                     &(FeedToUpdate {
                         id: x.id,
                         title: None,
@@ -87,7 +87,7 @@ fn get_links_to_check(db_state: &Connection) -> Vec<(i32, String, bool)> {
     }
 }
 
-fn insert_new_items(db_state: &Connection, feed: i32, items: &[RawItem]) -> Vec<ItemToCreate> {
+fn insert_new_items(conn: &Connection, feed: i32, items: &[RawItem]) -> Vec<ItemToCreate> {
     let current = Utc::now().fixed_offset();
 
     let args = items.iter().map(|x| ItemToCreate {
@@ -102,7 +102,7 @@ fn insert_new_items(db_state: &Connection, feed: i32, items: &[RawItem]) -> Vec<
 
     let mut inserted = vec![];
     for arg in args {
-        if item::create(db_state, &arg).is_ok() {
+        if item::create(conn, &arg).is_ok() {
             inserted.push(arg);
         }
     }
@@ -111,7 +111,7 @@ fn insert_new_items(db_state: &Connection, feed: i32, items: &[RawItem]) -> Vec<
 }
 
 fn get_most_recent_items(
-    db_state: &Connection,
+    conn: &Connection,
     feed_ids: &[i32],
 ) -> Result<HashMap<i32, DateTime<FixedOffset>>> {
     let mut most_recent_items = HashMap::new();
@@ -127,7 +127,7 @@ fn get_most_recent_items(
             offset: None,
         };
 
-        if let Some(item) = item::read_all(db_state, &opt)?.first() {
+        if let Some(item) = item::read_all(conn, &opt)?.first() {
             most_recent_items.insert(item.feed.id, item.published_at);
         }
     }
