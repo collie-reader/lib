@@ -18,3 +18,7 @@ thiserror = "1.0"
 regex = "1.9"
 scraper = "0.18.1"
 rand = "0.8.5"
+
+[dev-dependencies]
+tokio = { version = "1.40", features = ["macros"] }
+pretty_assertions = "1.4"

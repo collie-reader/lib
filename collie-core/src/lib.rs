@@ -10,3 +10,8 @@ pub mod producer {
 }
 
 pub mod error;
+
+#[cfg(test)]
+mod tests {
+    mod syndication;
+}
