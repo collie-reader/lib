@@ -28,16 +28,16 @@ pub fn find_feed_link(html_content: &str) -> Result<Option<String>> {
     Ok(None)
 }
 
-pub fn fetch_feed_title(link: &str, proxy: Option<&str>) -> Result<String> {
-    let content = fetch_content(link, proxy)?;
+pub async fn fetch_feed_title(link: &str, proxy: &Option<String>) -> Result<String> {
+    let content = fetch_content(link, proxy).await?;
     match content.parse::<Feed>()? {
         Feed::Atom(atom) => Ok(atom.title().to_string()),
         Feed::RSS(rss) => Ok(rss.title().to_string()),
     }
 }
 
-pub fn fetch_feed_items(link: &str, proxy: Option<&str>) -> Result<Vec<RawItem>> {
-    let content = fetch_content(link, proxy)?;
+pub async fn fetch_feed_items(link: &str, proxy: &Option<String>) -> Result<Vec<RawItem>> {
+    let content = fetch_content(link, proxy).await?;
     match content.parse::<Feed>()? {
         Feed::Atom(atom) => Ok(atom
             .entries()
@@ -88,26 +88,26 @@ pub fn fetch_feed_items(link: &str, proxy: Option<&str>) -> Result<Vec<RawItem>>
 }
 
 #[cfg(test)]
-pub fn fetch_content(link: &str, _proxy: Option<&str>) -> Result<String> {
+pub async fn fetch_content(link: &str, _proxy: &Option<String>) -> Result<String> {
     use std::fs;
     Ok(fs::read_to_string(link)?)
 }
 
 #[cfg(not(test))]
-pub fn fetch_content(link: &str, proxy: Option<&str>) -> Result<String> {
+pub async fn fetch_content(link: &str, proxy: &Option<String>) -> Result<String> {
     let client = if let Some(proxy_url) = proxy {
         match reqwest::Proxy::all(proxy_url) {
-            Ok(p) => reqwest::blocking::Client::builder().proxy(p).build()?,
-            Err(_) => reqwest::blocking::Client::new(),
+            Ok(p) => reqwest::Client::builder().proxy(p).build()?,
+            Err(_) => reqwest::Client::new(),
         }
     } else {
-        reqwest::blocking::Client::new()
+        reqwest::Client::new()
     };
     Ok(client
         .get(link)
         .header("User-Agent", "Mozilla/5.0")
-        .send()?
-        .text()?)
+        .send().await?
+        .text().await?)
 }
 
 // borrowed from https://github.com/rust-syndication/syndication

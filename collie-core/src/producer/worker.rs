@@ -17,7 +17,7 @@ use crate::model::item::ItemToCreate;
 use super::syndication::fetch_feed_items;
 use super::syndication::RawItem;
 
-pub fn create_new_items(conn: &Connection, proxy: Option<&str>) -> Result<Vec<ItemToCreate>> {
+pub async fn create_new_items(conn: &Connection, proxy: &Option<String>) -> Result<Vec<ItemToCreate>> {
     let pairs = get_links_to_check(conn);
 
     let mut inserted = vec![];
@@ -34,7 +34,7 @@ pub fn create_new_items(conn: &Connection, proxy: Option<&str>) -> Result<Vec<It
     };
 
     for (feed, link, fetch_old_items) in pairs {
-        let items = fetch_feed_items(&link, proxy)?;
+        let items = fetch_feed_items(&link, proxy).await?;
 
         let mut filtered_items = if !fetch_old_items && !most_recent_items.contains_key(&feed) {
             items
