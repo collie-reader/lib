@@ -71,7 +71,7 @@ impl Migration {
 }
 
 pub fn open_connection(path: &Path) -> Result<RusqliteConnection> {
-    Ok(RusqliteConnection::open(path.join("collie.db"))?)
+    Ok(RusqliteConnection::open(path)?)
 }
 
 pub fn feed_table() -> TableCreateStatement {
