@@ -17,7 +17,7 @@ use crate::model::item::ItemToCreate;
 use super::syndication::fetch_feed_items;
 use super::syndication::RawItem;
 
-pub async fn create_new_items(conn: &Connection, proxy: &Option<String>) -> Result<Vec<ItemToCreate>> {
+pub async fn create_new_items(conn: &Connection, proxy: Option<&str>) -> Result<Vec<ItemToCreate>> {
     let pairs = get_links_to_check(conn);
 
     let mut inserted = vec![];

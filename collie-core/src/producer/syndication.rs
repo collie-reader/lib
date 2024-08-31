@@ -28,7 +28,7 @@ pub fn find_feed_link(html_content: &str) -> Result<Option<String>> {
     Ok(None)
 }
 
-pub async fn fetch_feed_title(link: &str, proxy: &Option<String>) -> Result<String> {
+pub async fn fetch_feed_title(link: &str, proxy: Option<&str>) -> Result<String> {
     let content = fetch_content(link, proxy).await?;
     match content.parse::<Feed>()? {
         Feed::Atom(atom) => Ok(atom.title().to_string()),
@@ -36,7 +36,7 @@ pub async fn fetch_feed_title(link: &str, proxy: &Option<String>) -> Result<Stri
     }
 }
 
-pub async fn fetch_feed_items(link: &str, proxy: &Option<String>) -> Result<Vec<RawItem>> {
+pub async fn fetch_feed_items(link: &str, proxy: Option<&str>) -> Result<Vec<RawItem>> {
     let content = fetch_content(link, proxy).await?;
     match content.parse::<Feed>()? {
         Feed::Atom(atom) => Ok(atom
@@ -51,12 +51,12 @@ pub async fn fetch_feed_items(link: &str, proxy: &Option<String>) -> Result<Vec<
                         .collect::<Vec<_>>()
                         .join(","),
                 ),
-                link: x.links().first().map(|x| x.href().to_string()),
+                link: x.links().first().map(|x| x.href().trim().to_string()),
                 content: x
                     .content()
                     .map(atom_syndication::Content::value)
                     .filter(std::option::Option::is_some)
-                    .map(|x| x.unwrap().to_string()),
+                    .map(|x| x.unwrap().trim().to_string()),
                 published_at: x
                     .published()
                     .or(Some(x.updated()))
@@ -88,13 +88,13 @@ pub async fn fetch_feed_items(link: &str, proxy: &Option<String>) -> Result<Vec<
 }
 
 #[cfg(test)]
-pub async fn fetch_content(link: &str, _proxy: &Option<String>) -> Result<String> {
+pub async fn fetch_content(link: &str, _proxy: Option<&str>) -> Result<String> {
     use std::fs;
     Ok(fs::read_to_string(link)?)
 }
 
 #[cfg(not(test))]
-pub async fn fetch_content(link: &str, proxy: &Option<String>) -> Result<String> {
+pub async fn fetch_content(link: &str, proxy: Option<&str>) -> Result<String> {
     let client = if let Some(proxy_url) = proxy {
         match reqwest::Proxy::all(proxy_url) {
             Ok(p) => reqwest::Client::builder().proxy(p).build()?,
@@ -106,8 +106,10 @@ pub async fn fetch_content(link: &str, proxy: &Option<String>) -> Result<String>
     Ok(client
         .get(link)
         .header("User-Agent", "Mozilla/5.0")
-        .send().await?
-        .text().await?)
+        .send()
+        .await?
+        .text()
+        .await?)
 }
 
 // borrowed from https://github.com/rust-syndication/syndication
