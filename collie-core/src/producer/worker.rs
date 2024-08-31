@@ -4,7 +4,7 @@ use chrono::Utc;
 use std::collections::HashMap;
 
 use crate::error::Result;
-use crate::model::database::Connection;
+use crate::model::database::DbConnection;
 use crate::model::feed;
 use crate::model::feed::FeedStatus;
 use crate::model::feed::FeedToUpdate;
@@ -17,7 +17,10 @@ use crate::model::item::ItemToCreate;
 use super::syndication::fetch_feed_items;
 use super::syndication::RawItem;
 
-pub async fn create_new_items(conn: &Connection, proxy: Option<&str>) -> Result<Vec<ItemToCreate>> {
+pub async fn create_new_items(
+    conn: &DbConnection,
+    proxy: Option<&str>,
+) -> Result<Vec<ItemToCreate>> {
     let pairs = get_links_to_check(conn);
 
     let mut inserted = vec![];
@@ -61,7 +64,7 @@ pub async fn create_new_items(conn: &Connection, proxy: Option<&str>) -> Result<
     Ok(inserted)
 }
 
-fn get_links_to_check(conn: &Connection) -> Vec<(i32, String, bool)> {
+fn get_links_to_check(conn: &DbConnection) -> Vec<(i32, String, bool)> {
     if let Ok(feeds) = feed::read_all(conn) {
         let current = Utc::now().fixed_offset();
         let filtered = feeds.iter().filter(|x| x.status == FeedStatus::Subscribed);
@@ -87,7 +90,7 @@ fn get_links_to_check(conn: &Connection) -> Vec<(i32, String, bool)> {
     }
 }
 
-fn insert_new_items(conn: &Connection, feed: i32, items: &[RawItem]) -> Vec<ItemToCreate> {
+fn insert_new_items(conn: &DbConnection, feed: i32, items: &[RawItem]) -> Vec<ItemToCreate> {
     let current = Utc::now().fixed_offset();
 
     let args = items.iter().map(|x| ItemToCreate {
@@ -111,7 +114,7 @@ fn insert_new_items(conn: &Connection, feed: i32, items: &[RawItem]) -> Vec<Item
 }
 
 fn get_most_recent_items(
-    conn: &Connection,
+    conn: &DbConnection,
     feed_ids: &[i32],
 ) -> Result<HashMap<i32, DateTime<FixedOffset>>> {
     let mut most_recent_items = HashMap::new();

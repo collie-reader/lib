@@ -1,11 +1,11 @@
-use collie_core::model::database::Connection;
+use collie_core::model::database::DbConnection;
 use rand::{thread_rng, Rng};
 
 use crate::error::Result;
 use crate::model;
 use crate::model::key::KeyToCreate;
 
-pub fn create(conn: Connection, description: Option<&str>) -> Result<(String, String)> {
+pub fn create(conn: DbConnection, description: Option<&str>) -> Result<(String, String)> {
     let access_key = generate_key();
     let secret_key = generate_key();
 

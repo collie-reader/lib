@@ -1,16 +1,13 @@
-use std::{path::Path, sync::Mutex};
-
 use rusqlite::Connection as RusqliteConnection;
 use sea_query::{
     ColumnDef, Expr, ForeignKey, ForeignKeyAction, Iden, Index, SqliteQueryBuilder, Table,
-    TableCreateStatement,
+    TableStatement,
 };
+use std::{path::Path, sync::Mutex};
 
 use crate::error::Result;
 
-pub struct Connection {
-    pub db: Mutex<RusqliteConnection>,
-}
+pub type DbConnection = Mutex<RusqliteConnection>;
 
 #[derive(Iden)]
 pub enum Feeds {
@@ -39,7 +36,7 @@ pub enum Items {
 }
 
 pub struct Migration {
-    tables: Vec<TableCreateStatement>,
+    tables: Vec<TableStatement>,
 }
 
 impl Default for Migration {
@@ -53,8 +50,8 @@ impl Migration {
         Self { tables: Vec::new() }
     }
 
-    pub fn add_table(mut self, tables: TableCreateStatement) -> Self {
-        self.tables.push(tables);
+    pub fn table(mut self, stmts: Vec<TableStatement>) -> Self {
+        self.tables.extend(stmts);
         self
     }
 
@@ -74,8 +71,8 @@ pub fn open_connection(path: &Path) -> Result<RusqliteConnection> {
     Ok(RusqliteConnection::open(path)?)
 }
 
-pub fn feed_table() -> TableCreateStatement {
-    Table::create()
+pub fn feeds_table() -> Vec<TableStatement> {
+    let create_stmt = Table::create()
         .table(Feeds::Table)
         .if_not_exists()
         .col(
@@ -108,11 +105,26 @@ pub fn feed_table() -> TableCreateStatement {
                 .col(Feeds::Title)
                 .col(Feeds::Link),
         )
-        .to_owned()
+        .to_owned();
+
+    let alter_stmt = Table::alter()
+        .table(Feeds::Table)
+        .add_column_if_not_exists(
+            ColumnDef::new(Feeds::FetchOldItems)
+                .boolean()
+                .not_null()
+                .default(true),
+        )
+        .to_owned();
+
+    vec![
+        TableStatement::Create(create_stmt),
+        TableStatement::Alter(alter_stmt),
+    ]
 }
 
-pub fn items_table() -> TableCreateStatement {
-    Table::create()
+pub fn items_table() -> Vec<TableStatement> {
+    let create_stmt = Table::create()
         .table(Items::Table)
         .if_not_exists()
         .col(
@@ -156,5 +168,7 @@ pub fn items_table() -> TableCreateStatement {
                 .on_delete(ForeignKeyAction::Cascade)
                 .on_update(ForeignKeyAction::Cascade),
         )
-        .to_owned()
+        .to_owned();
+
+    vec![TableStatement::Create(create_stmt)]
 }

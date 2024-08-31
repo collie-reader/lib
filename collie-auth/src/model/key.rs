@@ -4,7 +4,7 @@ use sea_query::{Expr, Query, SqliteQueryBuilder};
 use sea_query_rusqlite::RusqliteBinder;
 use serde::{Deserialize, Serialize};
 
-use collie_core::model::database::Connection;
+use collie_core::model::database::DbConnection;
 
 use super::database::Keys;
 use crate::error::Result;
@@ -38,7 +38,7 @@ pub struct KeyToCreate {
     pub expired_at: Option<DateTime<FixedOffset>>,
 }
 
-pub fn create(conn: &Connection, arg: &KeyToCreate) -> Result<usize> {
+pub fn create(conn: &DbConnection, arg: &KeyToCreate) -> Result<usize> {
     let (sql, values) = Query::insert()
         .into_table(Keys::Table)
         .columns([
@@ -55,11 +55,11 @@ pub fn create(conn: &Connection, arg: &KeyToCreate) -> Result<usize> {
         ])
         .build_rusqlite(SqliteQueryBuilder);
 
-    let db = conn.db.lock().unwrap();
+    let db = conn.lock().unwrap();
     Ok(db.execute(sql.as_str(), &*values.as_params())?)
 }
 
-pub fn exists(conn: &Connection, access: &str, secret: &str) -> Result<bool> {
+pub fn exists(conn: &DbConnection, access: &str, secret: &str) -> Result<bool> {
     let (sql, values) = Query::select()
         .columns([Keys::Id])
         .from(Keys::Table)
@@ -73,7 +73,7 @@ pub fn exists(conn: &Connection, access: &str, secret: &str) -> Result<bool> {
         .limit(1)
         .build_rusqlite(SqliteQueryBuilder);
 
-    let db = conn.db.lock().unwrap();
+    let db = conn.lock().unwrap();
     let mut stmt = db.prepare(sql.as_str())?;
     let mut rows = stmt.query(&*values.as_params())?;
 

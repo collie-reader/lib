@@ -2,7 +2,7 @@ use chrono::Utc;
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 
-use collie_core::model::database::Connection;
+use collie_core::model::database::DbConnection;
 
 use crate::error::{Error, Result};
 use crate::model;
@@ -37,7 +37,12 @@ pub fn verify(access: &str, server_secret: &str) -> Result<bool> {
     }
 }
 
-pub fn issue(conn: &Connection, access: &str, secret: &str, server_secret: &str) -> Result<String> {
+pub fn issue(
+    conn: &DbConnection,
+    access: &str,
+    secret: &str,
+    server_secret: &str,
+) -> Result<String> {
     let exists = model::key::exists(conn, access, secret)?;
     if exists {
         Ok(encode(server_secret)?)

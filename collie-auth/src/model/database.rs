@@ -1,4 +1,4 @@
-use sea_query::{ColumnDef, Iden, Table, TableCreateStatement};
+use sea_query::{ColumnDef, Iden, Table, TableStatement};
 
 #[derive(Iden)]
 pub enum Keys {
@@ -10,8 +10,8 @@ pub enum Keys {
     ExpiredAt,
 }
 
-pub fn keys_table() -> TableCreateStatement {
-    Table::create()
+pub fn keys_table() -> Vec<TableStatement> {
+    let create = Table::create()
         .table(Keys::Table)
         .if_not_exists()
         .col(
@@ -25,5 +25,7 @@ pub fn keys_table() -> TableCreateStatement {
         .col(ColumnDef::new(Keys::Secret).text().not_null())
         .col(ColumnDef::new(Keys::Description).text())
         .col(ColumnDef::new(Keys::ExpiredAt).date_time())
-        .to_owned()
+        .to_owned();
+
+    vec![TableStatement::Create(create)]
 }
