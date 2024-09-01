@@ -36,7 +36,7 @@ pub enum Items {
 }
 
 pub struct Migration {
-    tables: Vec<TableStatement>,
+    tables: Vec<Vec<TableStatement>>,
 }
 
 impl Default for Migration {
@@ -51,7 +51,7 @@ impl Migration {
     }
 
     pub fn table(mut self, stmts: Vec<TableStatement>) -> Self {
-        self.tables.extend(stmts);
+        self.tables.push(stmts);
         self
     }
 
@@ -59,10 +59,19 @@ impl Migration {
         let sql = self
             .tables
             .iter()
-            .map(|t| t.build(SqliteQueryBuilder))
-            .collect::<Vec<_>>()
-            .join(";");
-        db.execute_batch(&sql)?;
+            .map(|stmts| {
+                stmts
+                    .iter()
+                    .map(|stmt| stmt.build(SqliteQueryBuilder))
+                    .collect::<Vec<_>>()
+                    .join(";")
+            })
+            .collect::<Vec<_>>();
+
+        for stmt in sql {
+            let _ = db.execute_batch(&stmt);
+        }
+
         Ok(())
     }
 }
