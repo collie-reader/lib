@@ -1,15 +1,15 @@
-use collie_core::model::database::DbConnection;
+use collie_core::repository::database::DbConnection;
 use rand::{thread_rng, Rng};
 
 use crate::error::Result;
-use crate::model;
 use crate::model::key::KeyToCreate;
+use crate::repository::key;
 
 pub fn create(conn: DbConnection, description: Option<&str>) -> Result<(String, String)> {
-    let access_key = generate_key();
-    let secret_key = generate_key();
+    let access_key = generate();
+    let secret_key = generate();
 
-    let _ = model::key::create(
+    let _ = key::create(
         &conn,
         &KeyToCreate {
             access: access_key.clone(),
@@ -22,7 +22,7 @@ pub fn create(conn: DbConnection, description: Option<&str>) -> Result<(String, 
     Ok((access_key, secret_key))
 }
 
-pub fn generate_key() -> String {
+pub fn generate() -> String {
     const CHARS: &[u8] =
         b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*_-";
 

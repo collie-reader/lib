@@ -3,11 +3,14 @@ use sea_query::{
     ColumnDef, Expr, ForeignKey, ForeignKeyAction, Iden, Index, SqliteQueryBuilder, Table,
     TableStatement,
 };
-use std::{path::Path, sync::Mutex};
+use std::{
+    path::Path,
+    sync::{Arc, Mutex},
+};
 
 use crate::error::Result;
 
-pub type DbConnection = Mutex<RusqliteConnection>;
+pub type DbConnection = Arc<Mutex<RusqliteConnection>>;
 
 #[derive(Iden)]
 pub enum Feeds {

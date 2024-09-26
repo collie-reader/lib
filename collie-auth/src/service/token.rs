@@ -1,23 +1,10 @@
 use chrono::Utc;
+use collie_core::repository::database::DbConnection;
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
-use serde::{Deserialize, Serialize};
-
-use collie_core::model::database::DbConnection;
 
 use crate::error::{Error, Result};
-use crate::model;
-
-#[derive(Serialize, Deserialize)]
-pub struct Claims {
-    pub iat: i64,
-    pub exp: i64,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct Login {
-    pub access: String,
-    pub secret: String,
-}
+use crate::model::token::Claims;
+use crate::repository::key;
 
 pub fn verify(access: &str, server_secret: &str) -> Result<bool> {
     let validation = Validation::default();
@@ -43,7 +30,7 @@ pub fn issue(
     secret: &str,
     server_secret: &str,
 ) -> Result<String> {
-    let exists = model::key::exists(conn, access, secret)?;
+    let exists = key::exists(conn, access, secret)?;
     if exists {
         Ok(encode(server_secret)?)
     } else {

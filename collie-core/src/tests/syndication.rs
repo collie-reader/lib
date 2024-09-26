@@ -1,7 +1,9 @@
-use crate::producer::syndication::{self, RawItem};
 use chrono::DateTime;
 use pretty_assertions::assert_eq;
 use std::{fs, path::PathBuf};
+
+use crate::model::syndication::RawItem;
+use crate::service::{feed, item};
 
 fn fixture(path: &str) -> String {
     fs::canonicalize(PathBuf::from(format!("src/tests/fixtures/{}", path)))
@@ -13,7 +15,7 @@ fn fixture(path: &str) -> String {
 
 #[tokio::test]
 async fn fetch_feed_title_rss() {
-    let title = syndication::fetch_feed_title(&fixture("hnrss-org-frontpage.rss"), None)
+    let title = feed::fetch_title(&fixture("hnrss-org-frontpage.rss"), None)
         .await
         .unwrap();
     assert_eq!(title, "Hacker News: Front Page");
@@ -21,7 +23,7 @@ async fn fetch_feed_title_rss() {
 
 #[tokio::test]
 async fn fetch_feed_title_atom() {
-    let title = syndication::fetch_feed_title(&fixture("hnrss-org-frontpage.atom"), None)
+    let title = feed::fetch_title(&fixture("hnrss-org-frontpage.atom"), None)
         .await
         .unwrap();
     assert_eq!(title, "Hacker News: Front Page");
@@ -29,7 +31,7 @@ async fn fetch_feed_title_atom() {
 
 #[tokio::test]
 async fn fetch_feed_items_rss() {
-    let items = syndication::fetch_feed_items(&fixture("hnrss-org-frontpage.rss"), None)
+    let items = item::fetch(&fixture("hnrss-org-frontpage.rss"), None)
         .await
         .unwrap();
     assert_eq!(
@@ -62,7 +64,7 @@ async fn fetch_feed_items_rss() {
 
 #[tokio::test]
 async fn fetch_feed_items_atom() {
-    let items = syndication::fetch_feed_items(&fixture("hnrss-org-frontpage.atom"), None)
+    let items = item::fetch(&fixture("hnrss-org-frontpage.atom"), None)
         .await
         .unwrap();
     assert_eq!(

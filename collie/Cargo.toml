@@ -1,7 +1,14 @@
 [package]
 name = "collie"
 version = "0.1.0"
+authors = ["Simon Park <parkgds@gmail.com>"]
+license = "APGL-3.0"
 edition = "2021"
+repository = "https://github.com/collie-reader/lib"
+
+[lib]
+name = "collie"
+path = "src/lib.rs"
 
 [dependencies]
 collie-core = { version = "0.1.0", path = "../collie-core" }

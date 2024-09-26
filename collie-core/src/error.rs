@@ -8,6 +8,12 @@ pub enum Error {
     #[error("failed to parse syndication feed")]
     SyndicationParsingFailure,
 
+    #[error("bad argument")]
+    BadArgument,
+
+    #[error("feed not found")]
+    FeedNotFound,
+
     #[error(transparent)]
     RusqliteError {
         #[from]
