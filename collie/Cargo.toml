@@ -2,9 +2,12 @@
 name = "collie"
 version = "0.1.0"
 authors = ["Simon Park <parkgds@gmail.com>"]
-license = "APGL-3.0"
+license = "AGPL-3.0-or-later"
 edition = "2021"
 repository = "https://github.com/collie-reader/lib"
+description = """
+A library for the minimal feed reader.
+"""
 
 [lib]
 name = "collie"

@@ -1,7 +1,13 @@
 [package]
 name = "collie-auth"
 version = "0.1.0"
+authors = ["Simon Park <parkgds@gmail.com>"]
+license = "AGPL-3.0-or-later"
 edition = "2021"
+repository = "https://github.com/collie-reader/lib"
+description = """
+A auth library for the minimal feed reader.
+"""
 
 [lib]
 name = "collie_auth"
