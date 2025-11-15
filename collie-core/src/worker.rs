@@ -55,9 +55,9 @@ impl Worker {
                 items
                     .into_iter()
                     .filter(|item| {
-                        most_recent_items.get(&feed).map_or(true, |most_recent| {
+                        most_recent_items.get(&feed).is_none_or(|most_recent| {
                             item.published_at
-                                .map_or(false, |published_at| published_at > *most_recent)
+                                .is_some_and(|published_at| published_at > *most_recent)
                         }) || fetch_old_items
                     })
                     .collect::<Vec<_>>()

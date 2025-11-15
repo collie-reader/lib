@@ -24,3 +24,4 @@ sea-query-rusqlite = { version = "0", features = ["with-chrono"] }
 thiserror = "1.0"
 rand = "0.8.5"
 jsonwebtoken = "9.3.0"
+argon2 = "0.5"

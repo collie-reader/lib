@@ -5,6 +5,7 @@ use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
 use crate::error::{Error, Result};
 use crate::model::token::Claims;
 use crate::repository::key;
+use crate::service::key as key_service;
 
 pub fn verify(access: &str, server_secret: &str) -> Result<bool> {
     let validation = Validation::default();
@@ -30,11 +31,16 @@ pub fn issue(
     secret: &str,
     server_secret: &str,
 ) -> Result<String> {
-    let exists = key::exists(conn, access, secret)?;
-    if exists {
-        Ok(encode(server_secret)?)
-    } else {
-        Err(Error::Unauthorized)
+    let hashed_secret = key::get_hashed_secret(conn, access)?;
+    match hashed_secret {
+        Some(hashed) => {
+            if key_service::verify_secret(secret, &hashed)? {
+                Ok(encode(server_secret)?)
+            } else {
+                Err(Error::Unauthorized)
+            }
+        }
+        None => Err(Error::Unauthorized),
     }
 }
 

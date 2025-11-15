@@ -3,6 +3,9 @@ pub enum Error {
     #[error("unauthorized")]
     Unauthorized,
 
+    #[error("internal error")]
+    Internal,
+
     #[error(transparent)]
     RusqliteError {
         #[from]

@@ -39,7 +39,7 @@ impl FromStr for FeedStatus {
     }
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Feed {
     pub id: i32,
     pub title: String,
@@ -62,14 +62,14 @@ impl From<&Row<'_>> for Feed {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct FeedToCreate {
     pub title: String,
     pub link: String,
     pub fetch_old_items: bool,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct FeedToUpdate {
     pub id: i32,
     pub title: Option<String>,

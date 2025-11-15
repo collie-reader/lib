@@ -16,8 +16,8 @@ pub struct RawItem {
 
 #[derive(Clone)]
 pub enum Feed {
-    Atom(atom_syndication::Feed),
-    RSS(rss::Channel),
+    Atom(Box<atom_syndication::Feed>),
+    RSS(Box<rss::Channel>),
 }
 
 impl FromStr for Feed {
@@ -25,9 +25,9 @@ impl FromStr for Feed {
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match atom_syndication::Feed::from_str(s) {
-            Ok(feed) => Ok(Self::Atom(feed)),
+            Ok(feed) => Ok(Self::Atom(Box::new(feed))),
             Err(_) => match rss::Channel::from_str(s) {
-                Ok(channel) => Ok(Self::RSS(channel)),
+                Ok(channel) => Ok(Self::RSS(Box::new(channel))),
                 Err(_) => Err(Error::SyndicationParsingFailure),
             },
         }

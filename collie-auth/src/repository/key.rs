@@ -46,3 +46,26 @@ pub fn exists(conn: &DbConnection, access: &str, secret: &str) -> Result<bool> {
 
     Ok(rows.next()?.is_some())
 }
+
+pub fn get_hashed_secret(conn: &DbConnection, access: &str) -> Result<Option<String>> {
+    let (sql, values) = Query::select()
+        .columns([Keys::Secret])
+        .from(Keys::Table)
+        .and_where(Expr::col(Keys::Access).eq(access))
+        .and_where(
+            Expr::col(Keys::ExpiredAt)
+                .gt(chrono::Utc::now())
+                .or(Expr::col(Keys::ExpiredAt).is_null()),
+        )
+        .limit(1)
+        .build_rusqlite(SqliteQueryBuilder);
+
+    let db = conn.lock().unwrap();
+    let mut stmt = db.prepare(sql.as_str())?;
+    let mut rows = stmt.query(&*values.as_params())?;
+
+    match rows.next()? {
+        Some(row) => Ok(Some(row.get(0)?)),
+        None => Ok(None),
+    }
+}

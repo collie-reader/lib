@@ -7,7 +7,7 @@ use std::str::FromStr;
 
 use crate::error::Error;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum ItemStatus {
     Unread,
     Read,
@@ -37,14 +37,14 @@ impl FromStr for ItemStatus {
     }
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ItemFeed {
     pub id: i32,
     pub title: String,
     pub link: String,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Item {
     pub id: i32,
     pub fingerprint: String,
@@ -79,7 +79,7 @@ impl From<&Row<'_>> for Item {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ItemToCreate {
     pub author: Option<String>,
     pub title: String,
@@ -96,28 +96,28 @@ impl ItemToCreate {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct ItemToUpdate {
     pub id: i32,
     pub status: Option<ItemStatus>,
     pub is_saved: Option<bool>,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct ItemToUpdateAll {
     pub status: Option<ItemStatus>,
     pub is_saved: Option<bool>,
     pub opt: Option<ItemReadOption>,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub enum ItemOrder {
     ReceivedDateDesc,
     PublishedDateDesc,
     UnreadFirst,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct ItemReadOption {
     pub ids: Option<Vec<i32>>,
     pub feed: Option<i32>,
