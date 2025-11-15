@@ -196,7 +196,7 @@ dependencies = [
 
 [[package]]
 name = "collie"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "collie-auth",
  "collie-core",
@@ -204,7 +204,7 @@ dependencies = [
 
 [[package]]
 name = "collie-auth"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "argon2",
  "chrono",
@@ -221,7 +221,7 @@ dependencies = [
 
 [[package]]
 name = "collie-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "atom_syndication",
  "chrono",

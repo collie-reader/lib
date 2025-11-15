@@ -1,6 +1,6 @@
 [package]
 name = "collie-auth"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Simon Park <parkgds@gmail.com>"]
 license = "AGPL-3.0-or-later"
 edition = "2021"
@@ -14,7 +14,7 @@ name = "collie_auth"
 path = "src/lib.rs"
 
 [dependencies]
-collie-core = { version = "0.1.0", path = "../collie-core" }
+collie-core = { version = "0.2.0", path = "../collie-core" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }

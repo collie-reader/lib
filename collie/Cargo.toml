@@ -1,6 +1,6 @@
 [package]
 name = "collie"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Simon Park <parkgds@gmail.com>"]
 license = "AGPL-3.0-or-later"
 edition = "2021"
@@ -14,8 +14,8 @@ name = "collie"
 path = "src/lib.rs"
 
 [dependencies]
-collie-core = { version = "0.1.0", path = "../collie-core" }
-collie-auth = { version = "0.1.0", path = "../collie-auth", optional = true }
+collie-core = { version = "0.2.0", path = "../collie-core" }
+collie-auth = { version = "0.2.0", path = "../collie-auth", optional = true }
 
 [features]
 default = ["core"]
